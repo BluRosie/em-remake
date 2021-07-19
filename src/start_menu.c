@@ -418,6 +418,7 @@ static void ShowTimeWindow(void)
     u8 alignedSuffix[16];
     u8 str[0x20];
     u8* ptr;
+    u8 hours;
 
     // print window
     sSafariBallsWindowId = AddWindow(&sClockWindowTemplate);
@@ -431,10 +432,16 @@ static void ShowTimeWindow(void)
     
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuTime);
     AddTextPrinterParameterized(sSafariBallsWindowId, 1, gStringVar4, 0, 1, 0xFF, NULL); // prints "time"
+    
+    hours = gSaveBlock2Ptr->playTimeHours;
+    
+    if (hours == 0)
+        hours = 12;
+    else if (hours > 12)
+        hours -= 12;
 
-    ptr = ConvertIntToDecimalStringN(gStringVar4, gSaveBlock2Ptr->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
+    ptr = ConvertIntToDecimalStringN(gStringVar4, hours, STR_CONV_MODE_LEFT_ALIGN, 3);
     *ptr = 0xF0;
-
     ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2Ptr->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
     AddTextPrinterParameterized(sSafariBallsWindowId, 1, gStringVar4, GetStringRightAlignXOffset(1, suffix, CLOCK_WINDOW_WIDTH) - (CLOCK_WINDOW_WIDTH - GetStringRightAlignXOffset(1, gStringVar4, CLOCK_WINDOW_WIDTH) + 3), 1, 0xFF, NULL); // print time
     
