@@ -3,6 +3,7 @@
 #include "battle_pyramid.h"
 #include "battle_pyramid_bag.h"
 #include "bg.h"
+#include "day_night.h"
 #include "event_data.h"
 #include "event_object_movement.h"
 #include "event_object_lock.h"
@@ -44,6 +45,7 @@
 #include "window.h"
 #include "constants/songs.h"
 #include "union_room.h"
+#include "constants/day_night.h"
 #include "constants/rgb.h"
 
 // Menu actions
@@ -137,6 +139,7 @@ static void Task_WaitForBattleTowerLinkSave(u8 taskId);
 static bool8 FieldCB_ReturnToFieldStartMenu(void);
 
 static const struct WindowTemplate sSafariBallsWindowTemplate = {0, 1, 1, 9, 4, 0xF, 8};
+static const struct WindowTemplate sClockWindowTemplate = {0, 1, 1, 9, 2, 0xF, 8};
 
 static const u8* const sPyramidFloorNames[] =
 {
@@ -219,6 +222,7 @@ static void BuildBattlePyramidStartMenu(void);
 static void BuildMultiPartnerRoomStartMenu(void);
 static void ShowSafariBallsWindow(void);
 static void ShowPyramidFloorWindow(void);
+static void ShowTimeWindow(void);
 static void RemoveExtraStartMenuWindows(void);
 static bool32 PrintStartMenuActions(s8 *pIndex, u32 count);
 static bool32 InitStartMenuStep(void);
@@ -405,6 +409,40 @@ static void ShowPyramidFloorWindow(void)
     CopyWindowToVram(sBattlePyramidFloorWindowId, 2);
 }
 
+#define CLOCK_WINDOW_WIDTH 70
+
+static void ShowTimeWindow(void)
+{
+    const u8 *suffix;
+    const u8 *timeofday;
+    u8 alignedSuffix[16];
+    u8 str[0x20];
+    u8* ptr;
+
+    // print window
+    sSafariBallsWindowId = AddWindow(&sClockWindowTemplate);
+    PutWindowTilemap(sSafariBallsWindowId);
+    DrawStdWindowFrame(sSafariBallsWindowId, FALSE);
+
+    if (gSaveBlock2Ptr->playTimeHours < 12)
+        suffix = gText_AM;
+    else
+        suffix = gText_PM;
+    
+    StringExpandPlaceholders(gStringVar4, gText_ContinueMenuTime);
+    AddTextPrinterParameterized(sSafariBallsWindowId, 1, gStringVar4, 0, 1, 0xFF, NULL); // prints "time"
+
+    ptr = ConvertIntToDecimalStringN(gStringVar4, gSaveBlock2Ptr->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
+    *ptr = 0xF0;
+
+    ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2Ptr->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
+    AddTextPrinterParameterized(sSafariBallsWindowId, 1, gStringVar4, GetStringRightAlignXOffset(1, suffix, CLOCK_WINDOW_WIDTH) - (CLOCK_WINDOW_WIDTH - GetStringRightAlignXOffset(1, gStringVar4, CLOCK_WINDOW_WIDTH) + 3), 1, 0xFF, NULL); // print time
+    
+    AddTextPrinterParameterized(sSafariBallsWindowId, 1, suffix, GetStringRightAlignXOffset(1, suffix, CLOCK_WINDOW_WIDTH), 1, 0xFF, NULL); // print am/pm
+
+    CopyWindowToVram(sSafariBallsWindowId, 2);
+}
+
 static void RemoveExtraStartMenuWindows(void)
 {
     if (GetSafariZoneFlag())
@@ -413,10 +451,16 @@ static void RemoveExtraStartMenuWindows(void)
         CopyWindowToVram(sSafariBallsWindowId, 2);
         RemoveWindow(sSafariBallsWindowId);
     }
-    if (InBattlePyramid())
+    else if (InBattlePyramid())
     {
         ClearStdWindowAndFrameToTransparent(sBattlePyramidFloorWindowId, FALSE);
         RemoveWindow(sBattlePyramidFloorWindowId);
+    }
+    else
+    {
+        ClearStdWindowAndFrameToTransparent(sSafariBallsWindowId, FALSE);
+        CopyWindowToVram(sSafariBallsWindowId, 2);
+        RemoveWindow(sSafariBallsWindowId);
     }
 }
 
@@ -473,8 +517,10 @@ static bool32 InitStartMenuStep(void)
     case 3:
         if (GetSafariZoneFlag())
             ShowSafariBallsWindow();
-        if (InBattlePyramid())
+        else if (InBattlePyramid())
             ShowPyramidFloorWindow();
+        else
+            ShowTimeWindow();
         sInitStartMenuData[0]++;
         break;
     case 4:
@@ -605,6 +651,12 @@ static bool8 HandleStartMenuInput(void)
         RemoveExtraStartMenuWindows();
         HideStartMenu();
         return TRUE;
+    }
+
+    if (!GetSafariZoneFlag() && !InBattlePyramid() && gSaveBlock2Ptr->playTimeSeconds == 0) 
+    {
+        RemoveExtraStartMenuWindows();
+        ShowTimeWindow();
     }
 
     return FALSE;
@@ -1310,6 +1362,8 @@ static void ShowSaveInfoWindow(void)
     u8 color;
     u32 xOffset;
     u32 yOffset;
+    const u8 *suffix;
+    u8 *alignedSuffix = gStringVar3;
 
     if (!FlagGet(FLAG_SYS_POKEDEX_GET))
     {
@@ -1357,11 +1411,29 @@ static void ShowSaveInfoWindow(void)
     }
 
     // Print play time
+    if (gSaveBlock2Ptr->playTimeHours < 12)
+        suffix = gText_AM;
+    else
+        suffix = gText_PM;
+
     yOffset += 16;
-    AddTextPrinterParameterized(sSaveInfoWindowId, 1, gText_SavingTime, 0, yOffset, 0xFF, NULL);
+    AddTextPrinterParameterized(sSaveInfoWindowId, 1, gText_SavingTime, 0, yOffset, 0xFF, NULL); // print "time"
     BufferSaveMenuText(SAVE_MENU_PLAY_TIME, gStringVar4, color);
-    xOffset = GetStringRightAlignXOffset(1, gStringVar4, 0x70);
-    AddTextPrinterParameterized(sSaveInfoWindowId, 1, gStringVar4, xOffset, yOffset, 0xFF, NULL);
+    xOffset = GetStringRightAlignXOffset(1, suffix, 0x70) - (0x70 - GetStringRightAlignXOffset(1, gStringVar4, 0x70) + 3);
+    AddTextPrinterParameterized(sSaveInfoWindowId, 1, gStringVar4, xOffset, yOffset, 0xFF, NULL); // print time
+
+    *(alignedSuffix++) = EXT_CTRL_CODE_BEGIN;
+    *(alignedSuffix++) = EXT_CTRL_CODE_COLOR;
+    *(alignedSuffix++) = color;
+    *(alignedSuffix++) = EXT_CTRL_CODE_BEGIN;
+    *(alignedSuffix++) = EXT_CTRL_CODE_SHADOW;
+    *(alignedSuffix++) = color + 1;
+
+    StringCopy(alignedSuffix, suffix);
+    
+    xOffset = GetStringRightAlignXOffset(1, suffix, 0x70);
+    AddTextPrinterParameterized(sSaveInfoWindowId, 1, gStringVar3, xOffset, yOffset, 0xFF, NULL); // print am/pm
+
 
     CopyWindowToVram(sSaveInfoWindowId, 2);
 }

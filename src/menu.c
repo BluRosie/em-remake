@@ -2133,6 +2133,7 @@ void BufferSaveMenuText(u8 textId, u8 *dest, u8 color)
     s32 flagCount;
     u8 *endOfString;
     u8 *string = dest;
+    u8 hours;
 
     *(string++) = EXT_CTRL_CODE_BEGIN;
     *(string++) = EXT_CTRL_CODE_COLOR;
@@ -2154,7 +2155,14 @@ void BufferSaveMenuText(u8 textId, u8 *dest, u8 color)
             *string = EOS;
             break;
         case SAVE_MENU_PLAY_TIME:
-            string = ConvertIntToDecimalStringN(string, gSaveBlock2Ptr->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
+            hours = gSaveBlock2Ptr->playTimeHours;
+
+            if (hours == 0)
+                hours = 12;
+            else if (hours > 12)
+                hours -= 12;
+
+            string = ConvertIntToDecimalStringN(string, hours, STR_CONV_MODE_LEFT_ALIGN, 3);
             *(string++) = CHAR_COLON;
             ConvertIntToDecimalStringN(string, gSaveBlock2Ptr->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
             break;

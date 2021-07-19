@@ -233,7 +233,9 @@ extern const u8 gText_InParty[];
 extern const u8 gText_InGameClockUsable[];
 
 // reset rtc screen texts
+extern const u8 gText_Morning[];
 extern const u8 gText_Day[];
+extern const u8 gText_Night[];
 extern const u8 gText_Colon3[];
 extern const u8 gText_Confirm2[];
 extern const u8 gText_PresentTime[];
@@ -348,6 +350,8 @@ extern const u8 gText_Birch_YourePlayer[];
 extern const u8 gText_Birch_AreYouReady[];
 extern const u8 gText_ContinueMenuPlayer[];
 extern const u8 gText_ContinueMenuTime[];
+extern const u8 gText_AM[];
+extern const u8 gText_PM[];
 extern const u8 gText_ContinueMenuPokedex[];
 extern const u8 gText_ContinueMenuBadges[];
 extern const u8 gText_BirchBoy[];

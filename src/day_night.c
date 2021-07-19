@@ -62,7 +62,7 @@ static const u16 sTimeOfDayTints[][3] = {
 
 u8 GetCurrentTimeOfDay(void)
 {
-    return GetTimeOfDay(gLocalTime.hours);
+    return GetTimeOfDay(gSaveBlock2Ptr->playTimeHours);
 }
 
 u8 GetTimeOfDay(s8 hours)
@@ -89,7 +89,7 @@ static void LoadPaletteOverrides(void)
         return;
 #endif
 
-    hour = gLocalTime.hours;
+    hour = gSaveBlock2Ptr->playTimeHours;
 
 #if DEBUG
     if (gDNPeriodOverride > 0)
@@ -164,8 +164,8 @@ static void TintPaletteForDayNight(u16 offset, u16 size)
     {
         RtcCalcLocalTimeFast();
 
-        hour = gLocalTime.hours;
-        hourPhase = gLocalTime.minutes / MINUTES_PER_TINT_PERIOD;
+        hour = gSaveBlock2Ptr->playTimeHours;
+        hourPhase = gSaveBlock2Ptr->playTimeMinutes / MINUTES_PER_TINT_PERIOD;
 
 #if DEBUG
         if (gDNPeriodOverride > 0)
@@ -226,8 +226,8 @@ void ProcessImmediateTimeEvents(void)
     {
         if (sDNSystemControl.retintPhase == 0)
         {
-            hour = gLocalTime.hours;
-            hourPhase = gLocalTime.minutes / MINUTES_PER_TINT_PERIOD;
+            hour = gSaveBlock2Ptr->playTimeHours;
+            hourPhase = gSaveBlock2Ptr->playTimeMinutes / MINUTES_PER_TINT_PERIOD;
 
 #if DEBUG
             if (gDNPeriodOverride > 0)

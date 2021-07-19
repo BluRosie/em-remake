@@ -2145,15 +2145,26 @@ static void MainMenu_FormatSavegamePlayer(void)
 
 static void MainMenu_FormatSavegameTime(void)
 {
+    const u8 *suffix;
+    u8 alignedSuffix[16];
+    
     u8 str[0x20];
     u8* ptr;
 
+    if (gSaveBlock2Ptr->playTimeHours < 12)
+        suffix = gText_AM;
+    else
+        suffix = gText_PM;
+
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuTime);
-    AddTextPrinterParameterized3(2, 1, 0x6C, 17, sTextColor_MenuInfo, -1, gStringVar4);
+    AddTextPrinterParameterized3(2, 1, 108, 17, sTextColor_MenuInfo, -1, gStringVar4); // prints "time"
     ptr = ConvertIntToDecimalStringN(str, gSaveBlock2Ptr->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
     *ptr = 0xF0;
+
     ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2Ptr->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
-    AddTextPrinterParameterized3(2, 1, GetStringRightAlignXOffset(1, str, 0xD0), 17, sTextColor_MenuInfo, -1, str);
+    AddTextPrinterParameterized3(2, 1, GetStringRightAlignXOffset(1, suffix, 0xD0) - (0xD0 - GetStringRightAlignXOffset(1, str, 0xD0) + 3), 17, sTextColor_MenuInfo, -1, str); // prints time
+
+    AddTextPrinterParameterized3(2, 1, GetStringRightAlignXOffset(1, suffix, 0xD0), 17, sTextColor_MenuInfo, -1, suffix); // print am/pm
 }
 
 static void MainMenu_FormatSavegamePokedex(void)
