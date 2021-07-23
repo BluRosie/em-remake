@@ -22,4 +22,7 @@ void CheckClockForImmediateTimeEvents(void);
 void ProcessImmediateTimeEvents(void);
 void DoLoadSpritePaletteDayNight(const u16 *src, u16 paletteOffset);
 
+#define IS_NIGHT_TIME (GetCurrentTimeOfDay() == TIME_NIGHT)
+#define IS_DAY_TIME !(IS_NIGHT_TIME)
+
 #endif // GUARD_DAY_NIGHT_H
