@@ -23,6 +23,7 @@ void Task_TryUseSoftboiledOnPartyMon(u8 taskId);
 void ChooseMonForSoftboiled(u8 taskId);
 
 // flash
+bool8 SetUpFieldMove_SunOrMoonlight(void);
 bool8 SetUpFieldMove_Flash(void);
 void CB2_DoChangeMap(void);
 bool8 GetMapPairFadeToType(u8 a1, u8 a2);

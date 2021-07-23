@@ -13,6 +13,7 @@
 #include "sound.h"
 #include "sprite.h"
 #include "task.h"
+#include "constants/field_effects.h"
 #include "constants/songs.h"
 #include "constants/map_types.h"
 
@@ -25,6 +26,7 @@ struct FlashStruct
     void (*func)(void);
 };
 
+static void FieldCallback_SunOrMoon(void);
 static void FieldCallback_Flash(void);
 static void FldEff_UseFlash(void);
 static bool8 TryDoMapTransition(void);
@@ -68,6 +70,23 @@ static const u16 sCaveTransitionPalette_Enter[] = INCBIN_U16("graphics/misc/cave
 static const u16 sCaveTransitionPalette_Exit[] = INCBIN_U16("graphics/misc/cave_transition_exit.gbapal");
 static const u32 sCaveTransitionTilemap[] = INCBIN_U32("graphics/misc/cave_transition_map.bin.lz");
 static const u32 sCaveTransitionTiles[] = INCBIN_U32("graphics/misc/cave_transition.4bpp.lz");
+
+bool8 SetUpFieldMove_SunOrMoonlight(void)
+{
+    gSpecialVar_Result = GetCursorSelectionMonId();
+    gFieldCallback2 = FieldCallback_PrepareFadeInFromMenu;
+    gPostMenuFieldCallback = FieldCallback_SunOrMoon;
+    return TRUE;
+}
+
+extern u8 sBraillePuzzleCallbackFlag;
+
+static void FieldCallback_SunOrMoon(void)
+{
+    gFieldEffectArguments[0] = GetCursorSelectionMonId();
+    sBraillePuzzleCallbackFlag = 20;
+    FieldEffectStart(FLDEFF_USE_TOMB_PUZZLE_EFFECT);
+}
 
 bool8 SetUpFieldMove_Flash(void)
 {

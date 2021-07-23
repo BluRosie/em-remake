@@ -11,6 +11,7 @@
 #include "bg.h"
 #include "contest.h"
 #include "data.h"
+#include "day_night.h"
 #include "decompress.h"
 #include "easy_chat.h"
 #include "event_data.h"
@@ -65,6 +66,7 @@
 #include "window.h"
 #include "constants/battle.h"
 #include "constants/battle_frontier.h"
+#include "constants/day_night.h"
 #include "constants/easy_chat.h"
 #include "constants/field_effects.h"
 #include "constants/item_effects.h"
@@ -74,6 +76,7 @@
 #include "constants/party_menu.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
+#include "constants/species.h"
 
 #define PARTY_PAL_SELECTED     (1 << 0)
 #define PARTY_PAL_FAINTED      (1 << 1)
@@ -2547,6 +2550,14 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
             }
         }
     }
+    if (GetMonData(&mons[slotId], MON_DATA_SPECIES) == SPECIES_CHERRIM
+     || GetMonData(&mons[slotId], MON_DATA_SPECIES) == SPECIES_CHERRIM_SUNSHINE)
+    {
+        if (IS_NIGHT_TIME)
+            AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_FIELD_MOVES+FIELD_MOVE_MORNING_SUN);
+        else
+            AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_FIELD_MOVES+FIELD_MOVE_MOONLIGHT);
+    }
 
     if (!InBattlePike())
     {
@@ -3676,6 +3687,11 @@ static void CursorCb_FieldMove(u8 taskId)
                 break;
             case FIELD_MOVE_FLY:
                 gPartyMenu.exitCallback = CB2_OpenFlyMap;
+                Task_ClosePartyMenu(taskId);
+                break;
+            case FIELD_MOVE_MOONLIGHT:
+            case FIELD_MOVE_MORNING_SUN:
+                gPartyMenu.exitCallback = CB2_ReturnToField;
                 Task_ClosePartyMenu(taskId);
                 break;
             default:

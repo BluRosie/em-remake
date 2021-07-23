@@ -1,4 +1,5 @@
 #include "global.h"
+#include "day_night.h"
 #include "event_data.h"
 #include "field_camera.h"
 #include "field_effect.h"
@@ -7,6 +8,7 @@
 #include "task.h"
 #include "constants/field_effects.h"
 #include "constants/maps.h"
+#include "constants/day_night.h"
 #include "constants/songs.h"
 #include "constants/metatile_labels.h"
 #include "fieldmap.h"
@@ -20,7 +22,7 @@ enum
     REGISTEEL_PUZZLE
 };
 
-EWRAM_DATA static u8 sBraillePuzzleCallbackFlag = 0;
+EWRAM_DATA u8 sBraillePuzzleCallbackFlag = 0;
 
 static const u8 gRegicePathCoords[][2] =
 {
@@ -276,6 +278,29 @@ void UseRegirockHm_Callback(void)
     DoBrailleRegirockEffect();
 }
 
+EWRAM_DATA static u32 count = 0;
+
+void UseSunOrMoonlight_Callback(void)
+{
+    u16 species;
+
+    FieldEffectActiveListRemove(FLDEFF_USE_TOMB_PUZZLE_EFFECT);
+    if (IS_NIGHT_TIME)
+    {
+        species = SPECIES_CHERRIM_SUNSHINE;
+        gSaveBlock2Ptr->playTimeHours = 12;
+    }
+    else
+    {
+        species = SPECIES_CHERRIM;
+        gSaveBlock2Ptr->playTimeHours = 0;
+    }
+    SetMonData(&gPlayerParty[GetCursorSelectionMonId()], MON_DATA_SPECIES, &species);
+    CalculateMonStats(&gPlayerParty[GetCursorSelectionMonId()]);
+
+    ScriptContext2_Disable();
+}
+
 void DoBrailleRegirockEffect(void)
 {
     MapGridSetMetatileIdAt(14, 26, METATILE_Cave_SealedChamberEntrance_TopLeft);
@@ -416,10 +441,15 @@ bool8 FldEff_UsePuzzleEffect(void)
         gTasks[taskId].data[8] = (u32)UseRegisteelHm_Callback >> 16;
         gTasks[taskId].data[9] = (u32)UseRegisteelHm_Callback;
     }
-    else
+    else if (sBraillePuzzleCallbackFlag == REGIROCK_PUZZLE)
     {
         gTasks[taskId].data[8] = (u32)UseRegirockHm_Callback >> 16;
         gTasks[taskId].data[9] = (u32)UseRegirockHm_Callback;
+    }
+    else
+    {
+        gTasks[taskId].data[8] = (u32)UseSunOrMoonlight_Callback >> 16;
+        gTasks[taskId].data[9] = (u32)UseSunOrMoonlight_Callback;
     }
     return FALSE;
 }

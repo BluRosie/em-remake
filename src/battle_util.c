@@ -7,6 +7,7 @@
 #include "battle_controllers.h"
 #include "battle_interface.h"
 #include "battle_setup.h"
+#include "day_night.h"
 #include "party_menu.h"
 #include "pokemon.h"
 #include "international_string_util.h"
@@ -38,6 +39,7 @@
 #include "constants/battle_move_effects.h"
 #include "constants/battle_script_commands.h"
 #include "constants/battle_string_ids.h"
+#include "constants/day_night.h"
 #include "constants/hold_effects.h"
 #include "constants/items.h"
 #include "constants/moves.h"
@@ -3651,9 +3653,9 @@ u8 TryWeatherFormChange(u8 battler)
     {
         if (gBattleMons[battler].ability != ABILITY_FLOWER_GIFT || gBattleMons[battler].hp == 0)
             ret = 0;
-        else if (gBattleMonForms[battler] == 0 && weatherEffect && gBattleWeather & WEATHER_SUN_ANY)
+        else if (gBattleMonForms[battler] == 0 && IS_DAY_TIME/*weatherEffect && gBattleWeather & WEATHER_SUN_ANY*/)
             ret = 2;
-        else if (gBattleMonForms[battler] != 0 && (!weatherEffect || !(gBattleWeather & WEATHER_SUN_ANY)))
+        else if (gBattleMonForms[battler] != 0 && IS_NIGHT_TIME/*(!weatherEffect || !(gBattleWeather & WEATHER_SUN_ANY))*/)
             ret = 1;
     }
 
