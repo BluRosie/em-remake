@@ -3,6 +3,8 @@
 #include "event_data.h"
 #include "field_camera.h"
 #include "field_effect.h"
+#include "field_screen_effect.h"
+#include "overworld.h"
 #include "script.h"
 #include "sound.h"
 #include "task.h"
@@ -278,25 +280,33 @@ void UseRegirockHm_Callback(void)
     DoBrailleRegirockEffect();
 }
 
-EWRAM_DATA static u32 count = 0;
-
 void UseSunOrMoonlight_Callback(void)
 {
     u16 species;
-
-    FieldEffectActiveListRemove(FLDEFF_USE_TOMB_PUZZLE_EFFECT);
+    u8 mapGroup = 0, mapNum, warpId = 0xF0;
+    u16 x = gSaveBlock1Ptr->pos.x;
+    u16 y = gSaveBlock1Ptr->pos.y;
     if (IS_NIGHT_TIME)
     {
         species = SPECIES_CHERRIM_SUNSHINE;
         gSaveBlock2Ptr->playTimeHours = 12;
+        mapNum = 9;
     }
     else
     {
         species = SPECIES_CHERRIM;
         gSaveBlock2Ptr->playTimeHours = 0;
+        mapNum = 10;
     }
+
+    FieldEffectActiveListRemove(FLDEFF_USE_TOMB_PUZZLE_EFFECT);
     SetMonData(&gPlayerParty[GetCursorSelectionMonId()], MON_DATA_SPECIES, &species);
     CalculateMonStats(&gPlayerParty[GetCursorSelectionMonId()]);
+
+    SetWarpDestination(mapGroup, mapNum, warpId, x, y);
+    DoDiveWarp();
+    ResetInitialPlayerAvatarState();
+    DrawWholeMapView();
 
     ScriptContext2_Disable();
 }

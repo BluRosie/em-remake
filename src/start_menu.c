@@ -46,7 +46,10 @@
 #include "constants/songs.h"
 #include "union_room.h"
 #include "constants/day_night.h"
+#include "constants/items.h"
+#include "constants/moves.h"
 #include "constants/rgb.h"
+#include "constants/species.h"
 
 // Menu actions
 enum
@@ -213,6 +216,7 @@ static const struct WindowTemplate sSaveInfoWindowTemplate = {
 // Local functions
 static void BuildStartMenuActions(void);
 static void AddStartMenuAction(u8 action);
+static void GenerateInitialMon(u16 species, u8 level, u16 item/*, u16 move116, u16 move216, u16 move316, u16 move416*/);
 static void BuildNormalStartMenu(void);
 static void BuildSafariZoneStartMenu(void);
 static void BuildLinkModeStartMenu(void);
@@ -285,6 +289,50 @@ static void BuildStartMenuActions(void)
     }
 }
 
+static void GenerateInitialMon(u16 species, u8 level, u16 item/*, u16 move116, u16 move216, u16 move316, u16 move416*/)
+{
+    u16 nationalDexNum;
+    int sentToPc;
+    u8 heldItem[2], move1[2], move2[2], move3[2], move4[2];
+    struct Pokemon mon;
+    s32 i;
+    u16 moves[4];
+    u8 pp[4];
+    u8 ppBonuses;
+
+    CreateMon(&mon, species, level, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
+    heldItem[0] = item;
+    heldItem[1] = item >> 8;
+    SetMonData(&mon, MON_DATA_HELD_ITEM, heldItem);
+    sentToPc = GiveMonToPlayer(&mon);
+    nationalDexNum = SpeciesToNationalPokedexNum(species);
+
+    /*moves[3] = move116;
+    moves[2] = move216;
+    moves[1] = move316;
+    moves[0] = move416;
+    pp[3] = gBattleMoves[move116].pp;
+    pp[2] = gBattleMoves[move216].pp;
+    pp[1] = gBattleMoves[move316].pp;
+    pp[0] = gBattleMoves[move416].pp;
+
+    for (i = 0; i < 4; i++)
+    {
+        SetMonData(&mon, MON_DATA_MOVE1 + i, &moves[i]);
+        SetMonData(&mon, MON_DATA_PP1 + i, &pp[i]);
+    }*/
+
+    switch(sentToPc)
+    {
+    case 0:
+    case 1:
+        GetSetPokedexFlag(nationalDexNum, FLAG_SET_SEEN);
+        GetSetPokedexFlag(nationalDexNum, FLAG_SET_CAUGHT);
+        break;
+    }
+    //return sentToPc;
+}
+
 static void AddStartMenuAction(u8 action)
 {
     AppendToList(sCurrentStartMenuActions, &sNumStartMenuActions, action);
@@ -296,10 +344,13 @@ static void BuildNormalStartMenu(void)
     {
         AddStartMenuAction(MENU_ACTION_POKEDEX);
     }
-    if (FlagGet(FLAG_SYS_POKEMON_GET) == TRUE)
+    if (FlagGet(FLAG_SYS_POKEMON_GET) != TRUE)
     {
-        AddStartMenuAction(MENU_ACTION_POKEMON);
+        FlagSet(FLAG_SYS_POKEMON_GET);
+
+        GenerateInitialMon(SPECIES_CHERRIM, 50, ITEM_LIFE_ORB/*, MOVE_SUNNY_DAY, MOVE_AROMATHERAPY, MOVE_ENERGY_BALL, MOVE_SEED_BOMB*/);
     }
+    AddStartMenuAction(MENU_ACTION_POKEMON);
 
     AddStartMenuAction(MENU_ACTION_BAG);
 
