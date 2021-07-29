@@ -290,13 +290,13 @@ void UseSunOrMoonlight_Callback(void)
     {
         species = SPECIES_CHERRIM_SUNSHINE;
         gSaveBlock2Ptr->playTimeHours = 12;
-        mapNum = 9;
+        mapNum = 10;
     }
     else
     {
         species = SPECIES_CHERRIM;
         gSaveBlock2Ptr->playTimeHours = 0;
-        mapNum = 10;
+        mapNum = 9;
     }
 
     FieldEffectActiveListRemove(FLDEFF_USE_TOMB_PUZZLE_EFFECT);
