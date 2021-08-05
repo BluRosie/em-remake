@@ -72,6 +72,7 @@
 #include "constants/item_effects.h"
 #include "constants/items.h"
 #include "constants/maps.h"
+#include "constants/metatile_behaviors.h"
 #include "constants/moves.h"
 #include "constants/party_menu.h"
 #include "constants/rgb.h"
@@ -2556,7 +2557,18 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
         if (IS_NIGHT_TIME)
             AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_FIELD_MOVES+FIELD_MOVE_MORNING_SUN);
         else
-            AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_FIELD_MOVES+FIELD_MOVE_MOONLIGHT);
+        {
+            u32 mb = MapGridGetMetatileBehaviorAt(gSaveBlock1Ptr->pos.x+7, gSaveBlock1Ptr->pos.y+7);
+            if (mb != MB_MOUNTAIN_TOP
+             && mb != MB_SIDEWAYS_STAIRS_RIGHT_SIDE
+             && mb != MB_SIDEWAYS_STAIRS_LEFT_SIDE
+             && mb != MB_SIDEWAYS_STAIRS_RIGHT_SIDE_TOP
+             && mb != MB_SIDEWAYS_STAIRS_LEFT_SIDE_TOP
+             && mb != MB_SIDEWAYS_STAIRS_RIGHT_SIDE_BOTTOM
+             && mb != MB_SIDEWAYS_STAIRS_LEFT_SIDE_BOTTOM)
+                AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_FIELD_MOVES+FIELD_MOVE_MOONLIGHT);
+            
+        }
     }
 
     if (!InBattlePike())
